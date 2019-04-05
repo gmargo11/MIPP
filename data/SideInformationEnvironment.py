@@ -16,7 +16,7 @@ class SideInformationEnvironment(Environment):
                 y_task: a numpy array of output-values for each sample from each function
                 num_funcs: the number of state variables in the dataset
         '''
-        n_sample = [225, 400, 1, 100]
+        n_sample = [100, 100, 1, 10]
         num_funcs = len(self.func)
         x_task = np.array([None for i in range(num_funcs)])
         y_task = np.array([None for i in range(num_funcs)])

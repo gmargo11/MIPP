@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 observed_feature = 2
 loc = [0.0, 0.0]
-points = [[-0.75, -0.75],  [-0.7, 0.0], [-0.7, 0.9], [1.5, -1.3], [1.2, -1.3]]
+points = [[-0.7, 0.0], [-0.7, 0.9],  [1.2, -1.3]]
 
 env = SideInformationEnvironment(points)
 planner = ExploreExploitPathPlanner()
@@ -21,7 +21,7 @@ alpha = 1.0
 for i in range(50):
 
     # evaluate policy
-    sampling_location = planner.policy(alpha, model, loc)
+    sampling_location = planner.policy(alpha, model.copy(), loc)
     
     # sample environment
     loc = sampling_location[0:2]
