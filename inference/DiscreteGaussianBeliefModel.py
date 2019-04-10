@@ -6,30 +6,44 @@ import math
 from inference import InferenceModel
 
 
-class JointGPModel(): # InferenceModel
+class DiscreteGaussianBeliefModel(): # InferenceModel
     def __init__(self):
+        self.res = 20
         self.kernel = generate_rbfkern(2, 1.0, 0.3)
+        self.entropy = 1.0
 
     def copy(self):
-        newMe = JointGPModel()
-        newMe.kernel = self.kernel
-        newMe.x_train, newMe.y_train, newMe.num_features = self.x_train.copy(), self.y_train.copy(), self.num_features
+        newMe = DiscreteGaussianBeliefModel()
+        newMe.x_train, newMe.y_train, newMe.num_features, newMe.entropy = self.x_train.copy(), self.y_train.copy(), self.num_features, self.entropy
 
         return newMe
 
-    def load_environment(self, env, start_loc=[0, 0]):
-        self.x_train, self.y_train, self.num_features = env.load_prior_data(start_loc)
+    def load_environment(self, env):
+        self.x_train, self.y_train, self.num_features = env.load_prior_data()
+        #self.entropy = -1 * len(self.x_train)
+        #print(self.entropy)
 
     def update(self, x, y, feature):
-        print(feature)
+        #print(np.min(abs(np.sum(self.x_train[feature] - [x[0:2]], axis=1))))
+        #print('a')
+        #print([x[0:2]])
+        #print(self.x_train[feature])
+        #print(self.x_train[feature] - [x[0:2]])
+        #print(np.sum(abs(self.x_train[feature] - [x[0:2]]), axis=1))
+        if np.min(np.sum(abs(self.x_train[feature] - [x[0:2]]), axis=1)) > 0.01:
+            self.entropy = self.entropy * 0.95
+        else:
+            print('entropy not decreased!')
+        print(self.entropy)
         self.x_train[feature] = np.append(self.x_train[feature], [x[0:2]], axis=0)
         self.y_train[feature] = np.append(self.y_train[feature], y)
 
     def observe(self, x):
-        model = self.infer_joint_distribution(res=20)
-        obs = model.predict(x)
-
-        return obs[0] + np.random.randn() * np.sqrt(obs[1])
+        feature = int(x[0][2])
+        if x[0][0:2] in self.x_train[feature]:
+            return self.x_train[feature]
+        else:
+            return np.random.randn()
         
     def infer_joint_distribution(self, res):
         ### train GP priors
@@ -44,21 +58,10 @@ class JointGPModel(): # InferenceModel
         x_candidates = generate_grid(-2, 2, res)
 
         ### sample variable distributions
-        #for x in range(len(x_candidates)):
-        for i in range(self.num_features):
-            pred = priors[i].predict(x_candidates)
-            m[i], s[i] = pred[0].flatten(), pred[1].flatten()
-            #print(pred[0].flatten())
-
-        #print(m[0, :])
-
-
-        #for x in range(len(x_candidates)):
-        #    for i in range(self.num_features):
-        #        pred = priors[i].predict(np.array([x_candidates[x]]))
-        #        m[i, x], s[i, x] = pred[0][0][0], pred[1][0][0]
-
-
+        for x in range(len(x_candidates)):
+            for i in range(self.num_features):
+                pred = priors[i].predict(np.array([x_candidates[x]]))
+                m[i, x], s[i, x] = pred[0][0][0], pred[1][0][0]
 
         ### compute weighted covariance
         W = self.generate_weights(s)
@@ -86,26 +89,6 @@ class JointGPModel(): # InferenceModel
         W = np.reciprocal(np.sqrt(S[2, :]))
         return W
 
-    def compute_entropy(self, res=30):
-        #model = self.infer_joint_distribution(res=res)
-        #x_candidates = np.concatenate([generate_grid(-2.0, 2.0, res), np.ones((res*res, 1))*2], axis=1)
-
-        model = self.infer_independent_distribution(2, res=res)
-        x_candidates = generate_grid(-2.0, 2.0, res)
-        mean, var = model.predict(x_candidates)
-        entropy = np.sum(np.log(var))
-
-        print(entropy)
-        return entropy
-
-    def compute_variance(self, x, res=20):
-        model = self.infer_joint_distribution(res=res)
-        return model.predict(x)[1][0][0]
-
-    def evaluate_MSE(self, true_func, res=20):
-        data = np.concatenate([generate_grid(-2.0, 2.0, res), np.ones((res*res, 1))*2], axis=1)
-        model = self.infer_joint_distribution(res=res)
-        m_pred, s_pred = model.predict(data)
-        m_true = np.apply_along_axis(true_func, axis=1, arr=data).reshape(-1, 1)
-
-        return np.sum((m_pred - m_true)**2) / (res * res)
+    def compute_entropy(self, res=20):
+        #print(self.entropy)
+        return self.entropy

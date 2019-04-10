@@ -6,19 +6,32 @@ import math
 from inference import InferenceModel
 
 
-class JointGPModel(): # InferenceModel
+class KnownCovarianceModel(): # InferenceModel
     def __init__(self):
         self.kernel = generate_rbfkern(2, 1.0, 0.3)
 
     def copy(self):
-        newMe = JointGPModel()
+        newMe = KnownCovarianceModel()
         newMe.kernel = self.kernel
         newMe.x_train, newMe.y_train, newMe.num_features = self.x_train.copy(), self.y_train.copy(), self.num_features
+        newMe.cov = self.cov
 
         return newMe
 
     def load_environment(self, env, start_loc=[0, 0]):
         self.x_train, self.y_train, self.num_features = env.load_prior_data(start_loc)
+
+        # compute true covariance
+        xs = generate_grid(-2.0, 2.0, res=30)
+        y_true = np.zeros((self.num_features, 30*30))
+        
+        for feature in range(self.num_features):
+            y_true[feature, :] = np.apply_along_axis(env.func[feature], axis=1, arr=xs).reshape(-1, 1).flatten()
+
+        Y_true = np.array([y_true[i] - np.mean(y_true[i]) for i in range(self.num_features)])
+        print("loaded")
+        self.cov = np.cov(Y_true)
+
 
     def update(self, x, y, feature):
         print(feature)
@@ -38,38 +51,9 @@ class JointGPModel(): # InferenceModel
             priors[i] = GP(self.x_train[i], self.y_train[i], self.kernel)
             #plotGP(priors[i], x_train[i], 'Feature '+str(i))
 
-        m = np.ndarray((self.num_features, res*res))
-        s = np.ndarray((self.num_features, res*res))
-
-        x_candidates = generate_grid(-2, 2, res)
-
-        ### sample variable distributions
-        #for x in range(len(x_candidates)):
-        for i in range(self.num_features):
-            pred = priors[i].predict(x_candidates)
-            m[i], s[i] = pred[0].flatten(), pred[1].flatten()
-            #print(pred[0].flatten())
-
-        #print(m[0, :])
-
-
-        #for x in range(len(x_candidates)):
-        #    for i in range(self.num_features):
-        #        pred = priors[i].predict(np.array([x_candidates[x]]))
-        #        m[i, x], s[i, x] = pred[0][0][0], pred[1][0][0]
-
-
-
-        ### compute weighted covariance
-        W = self.generate_weights(s)
-        X = np.array([m[i] - np.mean(m[i]) for i in range(self.num_features)])
-
-        w_cov = np.cov(X, aweights=W)
-
-        ### use lasso to estimate a sparse precision matrix? (GGM model estimation)
 
         ### construct correlated joint distribution GP
-        joint_distribution = MOGP(self.x_train, self.y_train, w_cov, self.kernel)
+        joint_distribution = MOGP(self.x_train, self.y_train, self.cov, self.kernel)
         #plotMOGP(joint_distribution, x_train, 2, 'Output 2')
 
         return joint_distribution
@@ -82,27 +66,18 @@ class JointGPModel(): # InferenceModel
         joint_distribution = self.infer_joint_distribution(res=20)
         plotMOGP(joint_distribution, self.x_train, output=feature, title=title, res=20)
     
-    def generate_weights(self, S):
-        W = np.reciprocal(np.sqrt(S[2, :]))
-        return W
 
-    def compute_entropy(self, res=30):
-        #model = self.infer_joint_distribution(res=res)
-        #x_candidates = np.concatenate([generate_grid(-2.0, 2.0, res), np.ones((res*res, 1))*2], axis=1)
+    def compute_entropy(self, res=20):
+        model = self.infer_joint_distribution(res=res)
 
-        model = self.infer_independent_distribution(2, res=res)
-        x_candidates = generate_grid(-2.0, 2.0, res)
-        mean, var = model.predict(x_candidates)
-        entropy = np.sum(np.log(var))
+        x_candidates = np.concatenate([generate_grid(-2.0, 2.0, res), np.ones((res*res, 1))*2], axis=1)
+        y_pred = model.predict(x_candidates)
 
+        entropy = np.sum(0.5 * np.log(math.sqrt(2 * math.pi * math.e) * y_pred[1][:][0]))
         print(entropy)
         return entropy
 
-    def compute_variance(self, x, res=20):
-        model = self.infer_joint_distribution(res=res)
-        return model.predict(x)[1][0][0]
-
-    def evaluate_MSE(self, true_func, res=20):
+    def evaluate_MSE(self, true_func, res=30):
         data = np.concatenate([generate_grid(-2.0, 2.0, res), np.ones((res*res, 1))*2], axis=1)
         model = self.infer_joint_distribution(res=res)
         m_pred, s_pred = model.predict(data)
