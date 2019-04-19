@@ -57,7 +57,6 @@ def simulateRun(env, plannerClass, modelClass, num_steps=50, loc=[0.0, 0.0]):
 def plot_MSE(env, plannerClass, modelClass, num_steps, num_trials, color, loc_list):
 
 
-
     MSE_all = np.zeros((num_trials, num_steps))
 
     for i in range(num_trials):

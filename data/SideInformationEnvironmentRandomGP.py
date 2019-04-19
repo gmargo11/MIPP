@@ -9,6 +9,7 @@ class SideInformationEnvironmentRandomGP(Environment):
         self.points = points
         self.func = [self.hardness_field, self.depth_field, self.signal_field, self.random_field]
         self.func_names = ['hardness field', 'depth field', 'signal field', 'random field']
+<<<<<<< HEAD
         self.res = 8
 
         kernel = generate_rbfkern(2, 1.0, 1.5)
@@ -46,6 +47,15 @@ class SideInformationEnvironmentRandomGP(Environment):
         print(x_disc)
         self.randsignal = model.posterior_samples(x_disc, size=1).reshape(self.true_res, self.true_res)
         print(self.truesignal)
+=======
+        self.res = 20
+
+        self.kernel = generate_rbfkern(2, 1.0, 1.5)
+        self.x_test = generate_grid(lb=-2.0, ub=2.0, res=self.res)
+        self.draw = np.random.normal(size=(self.res * self.res, 1))
+
+        #self.posteriorY = model.posterior_samples(x_samp, full_cov=True, size=1).reshape(self.res, self.res)
+>>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
 
 
 
@@ -57,7 +67,11 @@ class SideInformationEnvironmentRandomGP(Environment):
                 y_task: a numpy array of output-values for each sample from each function
                 num_funcs: the number of state variables in the dataset
         '''
+<<<<<<< HEAD
         n_sample = [100, 100, 1, 100]
+=======
+        n_sample = [100, 100, 1, 10]
+>>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
         num_funcs = len(self.func)
         x_task = np.array([None for i in range(num_funcs)])
         y_task = np.array([None for i in range(num_funcs)])
@@ -79,6 +93,7 @@ class SideInformationEnvironmentRandomGP(Environment):
 
     def signal_field(self, x):
 
+<<<<<<< HEAD
         xindex = int((x[0] + 2.0) / 4.0 * self.true_res-1)
         yindex = int((x[1] + 2.0) / 4.0 * self.true_res-1)
 
@@ -89,6 +104,16 @@ class SideInformationEnvironmentRandomGP(Environment):
         #print(xindex, yindex)
 
         return self.truesignal[xindex, yindex]
+=======
+        #xindex = int((x[0] + 2.0) / 4 * self.res-1)
+        #yindex = int((x[1] + 2.0) / 4 * self.res-1)
+
+        K_ss = self.kernel(self.x_test, x)
+        L = np.linalg.cholesky(K_ss + 1e-15*np.eye(len(K_ss)))
+        val = np.dot(L, self.draw)
+
+        #return self.posteriorY[xindex, yindex]
+>>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
 
     def depth_field(self, x):
         return -1 * x[0]
@@ -97,9 +122,13 @@ class SideInformationEnvironmentRandomGP(Environment):
         return (self.signal_field(x) - x[0]) * 2 #+ np.random.rand()*0.1
 
     def random_field(self, x):
+<<<<<<< HEAD
         #return np.random.randn() #* 0.01
         xindex = int((x[0] + 2.0) / 4.0 * self.true_res-1)
         yindex = int((x[1] + 2.0) / 4.0 * self.true_res-1)
 
 
         return self.randsignal[xindex, yindex]
+=======
+        return 0.1 #+ np.random.randn() * 0.01
+>>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
