@@ -16,11 +16,7 @@ class GreedyPlanner():
 
     def policy(self, alpha, inference_model, loc):
         
-<<<<<<< HEAD
         stepsize = 0.3
-=======
-        stepsize = 0.1
->>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
         displacements = [[stepsize, 0], [-stepsize, 0], [0, stepsize], [0, -stepsize]]#[[stepsize * math.cos(t), stepsize * math.sin(t)] for t in np.linspace(0, 2*math.pi, 20)]
         candidates = []
         for d in displacements:

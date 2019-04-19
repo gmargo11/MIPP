@@ -9,20 +9,14 @@ from inference import InferenceModel
 class KnownCovarianceModel(): # InferenceModel
     def __init__(self):
         self.kernel = generate_rbfkern(2, 1.0, 0.3)
-<<<<<<< HEAD
         self.res=41
-=======
->>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
 
     def copy(self):
         newMe = KnownCovarianceModel()
         newMe.kernel = self.kernel
         newMe.x_train, newMe.y_train, newMe.num_features = self.x_train.copy(), self.y_train.copy(), self.num_features
         newMe.cov = self.cov
-<<<<<<< HEAD
         newMe.env = self.env
-=======
->>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
 
         return newMe
 
@@ -30,13 +24,8 @@ class KnownCovarianceModel(): # InferenceModel
         self.x_train, self.y_train, self.num_features = env.load_prior_data(start_loc)
 
         # compute true covariance
-<<<<<<< HEAD
         xs = generate_grid(-2.0, 2.0, res=self.res)
         y_true = np.zeros((self.num_features, self.res*self.res))
-=======
-        xs = generate_grid(-2.0, 2.0, res=30)
-        y_true = np.zeros((self.num_features, 30*30))
->>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
         
         for feature in range(self.num_features):
             y_true[feature, :] = np.apply_along_axis(env.func[feature], axis=1, arr=xs).reshape(-1, 1).flatten()
@@ -44,30 +33,16 @@ class KnownCovarianceModel(): # InferenceModel
         Y_true = np.array([y_true[i] - np.mean(y_true[i]) for i in range(self.num_features)])
         print("loaded")
         self.cov = np.cov(Y_true)
-<<<<<<< HEAD
         self.env = env
-=======
->>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
 
 
     def update(self, x, y, feature):
         print(feature)
-<<<<<<< HEAD
         #self.x_train[feature] = np.append(self.x_train[feature], [x[0:2]], axis=0)
         #self.y_train[feature] = np.append(self.y_train[feature], y)
 
     def observe(self, x):
         return self.env.observe(x[0][0:2], 2)
-=======
-        self.x_train[feature] = np.append(self.x_train[feature], [x[0:2]], axis=0)
-        self.y_train[feature] = np.append(self.y_train[feature], y)
-
-    def observe(self, x):
-        model = self.infer_joint_distribution(res=20)
-        obs = model.predict(x)
-
-        return obs[0] + np.random.randn() * np.sqrt(obs[1])
->>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
         
     def infer_joint_distribution(self, res):
         ### train GP priors
@@ -88,7 +63,6 @@ class KnownCovarianceModel(): # InferenceModel
         return independent_distribution
 
     def display(self, feature, title):
-<<<<<<< HEAD
         joint_distribution = self.infer_joint_distribution(res=21)
         plotMOGP(joint_distribution, self.x_train, output=feature, title=title, res=21)
     
@@ -103,21 +77,6 @@ class KnownCovarianceModel(): # InferenceModel
         #print(entropy)
         #return entropy
         return 0.0
-=======
-        joint_distribution = self.infer_joint_distribution(res=20)
-        plotMOGP(joint_distribution, self.x_train, output=feature, title=title, res=20)
-    
-
-    def compute_entropy(self, res=20):
-        model = self.infer_joint_distribution(res=res)
-
-        x_candidates = np.concatenate([generate_grid(-2.0, 2.0, res), np.ones((res*res, 1))*2], axis=1)
-        y_pred = model.predict(x_candidates)
-
-        entropy = np.sum(0.5 * np.log(math.sqrt(2 * math.pi * math.e) * y_pred[1][:][0]))
-        print(entropy)
-        return entropy
->>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
 
     def evaluate_MSE(self, true_func, res=30):
         data = np.concatenate([generate_grid(-2.0, 2.0, res), np.ones((res*res, 1))*2], axis=1)

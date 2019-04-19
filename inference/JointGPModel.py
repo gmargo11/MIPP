@@ -86,11 +86,7 @@ class JointGPModel(): # InferenceModel
         W = np.reciprocal(np.sqrt(S[2, :]))
         return W
 
-<<<<<<< HEAD
     def compute_entropy(self, res=21):
-=======
-    def compute_entropy(self, res=30):
->>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
         #model = self.infer_joint_distribution(res=res)
         #x_candidates = np.concatenate([generate_grid(-2.0, 2.0, res), np.ones((res*res, 1))*2], axis=1)
 
@@ -102,11 +98,7 @@ class JointGPModel(): # InferenceModel
         print(entropy)
         return entropy
 
-<<<<<<< HEAD
     def compute_variance(self, x, res=21):
-=======
-    def compute_variance(self, x, res=20):
->>>>>>> 098165062136fb0c0d2750243a0ba6a0d3889115
         model = self.infer_joint_distribution(res=res)
         return model.predict(x)[1][0][0]
 
