@@ -9,14 +9,14 @@ class SideInformationEnvironment(Environment):
         self.func = [self.hardness_field, self.depth_field, self.signal_field, self.random_field]
         self.func_names = ['hardness field', 'depth field', 'signal field', 'random field']
     
-    def load_prior_data(self):
+    def load_prior_data(self, start_loc=[0, 0]):
         ''' inputs: none
             outputs:
                 x_task: a numpy array of input-values for each sample for each function
                 y_task: a numpy array of output-values for each sample from each function
                 num_funcs: the number of state variables in the dataset
         '''
-        n_sample = [225, 400, 1, 100]
+        n_sample = [100, 100, 1, 10]
         num_funcs = len(self.func)
         x_task = np.array([None for i in range(num_funcs)])
         y_task = np.array([None for i in range(num_funcs)])
@@ -24,7 +24,8 @@ class SideInformationEnvironment(Environment):
         ### generate training data from functions
         for i in range(num_funcs):
             if i == 2: 
-                x_task[i] = np.array([np.random.rand(n_sample[i]) * -1, np.random.rand(n_sample[i]) * -1]).T
+                #x_task[i] = np.array([np.random.rand(n_sample[i]) * -1, np.random.rand(n_sample[i]) * -1]).T
+                x_task[i] = np.array([[start_loc[0]], [start_loc[1]]]).T
             else:
                 x_task[i] = generate_grid(-2.0, 2.0, int(math.sqrt(n_sample[i])))
             y_task[i] = np.array([self.func[i](xp) for xp in x_task[i]])
@@ -40,7 +41,7 @@ class SideInformationEnvironment(Environment):
         strength = 0
         for point in self.points:
             dist = math.sqrt((x[0] - point[0])**2 + (x[1] - point[1])**2)
-            strength += math.exp(-dist*3) * 2
+            strength += math.exp(-(dist)**2)
         return strength
 
     def depth_field(self, x):
@@ -50,4 +51,4 @@ class SideInformationEnvironment(Environment):
         return (self.signal_field(x) - x[0]) * 2 #+ np.random.rand()*0.1
 
     def random_field(self, x):
-        return 0.1 + np.random.randn() * 0.01
+        return 0.1 #+ np.random.randn() * 0.01

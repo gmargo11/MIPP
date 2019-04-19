@@ -43,3 +43,4 @@ def generate_grid(lb, ub, res):
     X1_grid, X2_grid = np.meshgrid(x1_grid, x2_grid)
     X_grid = np.array([X1_grid, X2_grid]).reshape(2, -1).T
     return X_grid
+

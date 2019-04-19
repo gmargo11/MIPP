@@ -12,7 +12,7 @@ def plotGP(model, x_train, title, res=30):
     plt.figure()
     CS = plt.contour(np.linspace(-2, 2, res), np.linspace(-2, 2, res), Y_pred[0].reshape(res, res))
     plt.clabel(CS, inline=1, fontsize=10)
-    plt.scatter(x_train[:, 0], x_train[:, 1])
+    plt.plot(x_train[:, 0], x_train[:, 1])
     plt.title('Mean, ' + title)
     
     if 'signal field' in title:
@@ -24,7 +24,7 @@ def plotGP(model, x_train, title, res=30):
     CS = plt.contour(np.linspace(-2, 2, res), np.linspace(-2, 2, res), \
         np.sqrt(Y_pred[1].reshape(res, res)))
     plt.clabel(CS, inline=1, fontsize=10)
-    plt.scatter(x_train[:][0], x_train[:][1])
+    plt.plot(x_train[:, 0], x_train[:, 1])
     plt.title('Stdev, ' + title)
 
 def plotMOGP(model, x_train, output, title, res=30):
