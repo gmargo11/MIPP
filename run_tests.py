@@ -1,4 +1,5 @@
 from data.SideInformationEnvironmentRandomGP import SideInformationEnvironmentRandomGP
+from data.SideInformationEnvironmentRandomIndependentGP import SideInformationEnvironmentRandomIndependentGP
 from inference.DiscreteGaussianBeliefModel import DiscreteGaussianBeliefModel
 from inference.GaussianProcessBeliefModel import GaussianProcessBeliefModel
 from inference.JointGPModel import JointGPModel
@@ -14,10 +15,10 @@ import numpy as np
 
 
 
-def simulateRun(env, plannerClass, modelClass, num_steps=50):
+def simulateRun(env, plannerClass, modelClass, seed, num_steps=50, loc=[0.0, 0.0]):
 
     observed_feature = 2
-    loc = [1.0, 1.0]
+    env.randomize(seed)
 
     planner = plannerClass()
     model = modelClass()
@@ -55,8 +56,7 @@ def simulateRun(env, plannerClass, modelClass, num_steps=50):
     
 
 
-def plot_MSE(env, plannerClass, modelClass, num_steps, num_trials, color):
-
+def plot_MSE(env, plannerClass, modelClass, num_steps, num_trials, color, loc_list):
 
 
     MSE_all = np.zeros((num_trials, num_steps))
@@ -65,7 +65,9 @@ def plot_MSE(env, plannerClass, modelClass, num_steps, num_trials, color):
         MSE, model = simulateRun(  env=env, 
                             plannerClass=plannerClass, 
                             modelClass=modelClass, 
-                            num_steps=num_steps
+                            seed=i,
+                            num_steps=num_steps,
+                            loc=loc_list[i]
                             )
         MSE_all[i] = MSE
 
@@ -78,7 +80,7 @@ def plot_MSE(env, plannerClass, modelClass, num_steps, num_trials, color):
     l2 = plt.fill_between(range(num_steps), np.mean(MSE_all, axis=0), np.mean(MSE_all, axis=0) - np.std(MSE_all, axis=0))
     l2.set_facecolors([[.5,.5,.8,.3]])
 
-    np.savetxt(str(type(env)) + " " + str(type(plannerClass)) + " " + str(type(modelClass)) + ".txt", MSE_all)
+    #np.savetxt(str(type(env)) + " " + str(type(plannerClass)) + " " + str(type(modelClass)) + ".txt", MSE_all)
     #plt.plot(range(num_steps), np.mean(MSE_all, axis=0) + np.std(MSE_all, axis=0), 'g--')
     #plt.plot(range(num_steps), np.mean(MSE_all, axis=0) - np.std(MSE_all, axis=0), 'g--')
 
@@ -89,50 +91,65 @@ if __name__ == "__main__":
 
     plt.figure()
 
-    plt.title('Model Mean Square Error')
-    plt.xlabel('Time')
+    plt.title('Temperature Prediction Mean Square Error')
+    plt.xlabel('Time (min)')
     plt.ylabel('MSE')
 
+    env = SideInformationEnvironmentRandomGP(points)
+    #env = SideInformationEnvironmentRandomIndependentGP(points)
 
-    plot_MSE(   env=SideInformationEnvironmentRandomGP(points), 
+    num_trials = 12
+    num_steps = 80
+
+    starting_locs = np.round(np.random.random(size=(num_trials, 2)), 1)
+
+    '''
+    plot_MSE(   env=env, 
+                plannerClass=RandomPlanner, 
+                modelClass=GaussianProcessBeliefModel, 
+                num_steps=num_steps,
+                num_trials=num_trials,
+                color='r',
+                loc_list=starting_locs
+                )
+    '''
+    plot_MSE(   env=env, 
                 plannerClass=GreedyPlanner, 
                 modelClass=GaussianProcessBeliefModel, 
-                num_steps=60,
-                num_trials=3,
-                color='r'
+                num_steps=num_steps,
+                num_trials=num_trials,
+                color='b',
+                loc_list=starting_locs
                 )
     
-    '''plot_MSE(   env=SideInformationEnvironment(points), 
-                plannerClass=GreedyPlanner, 
-                modelClass=GaussianProcessBeliefModel, 
-                num_steps=50,
-                num_trials=10,
-                color='b'
-                )
-    '''
-    plot_MSE(   env=SideInformationEnvironmentRandomGP(points), 
+    plot_MSE(   env=env, 
                 plannerClass=GreedyPlanner, 
                 modelClass=JointGPModel, 
-                num_steps=60,
-                num_trials=1,
-                color='g'
+                num_steps=num_steps,
+                num_trials=num_trials,
+                color='g',
+                loc_list=starting_locs
                 )
     '''
-    plot_MSE(   env=SideInformationEnvironment(points), 
+    plot_MSE(   env=env, 
                 plannerClass=GreedyPlanner, 
                 modelClass=JointGPModel, 
-                num_steps=20,
-                num_trials=3,
-                color='c'
+                num_steps=num_steps,
+                num_trials=num_trials,
+                color='c',
+                loc_list=starting_locs
                 )
     '''
-    plot_MSE(   env=SideInformationEnvironmentRandomGP(points), 
+    plot_MSE(   env=env, 
                 plannerClass=GreedyPlanner, 
                 modelClass=KnownCovarianceModel, 
-                num_steps=60,
-                num_trials=1,
-                color='b'
+                num_steps=num_steps,
+                num_trials=num_trials,
+                color='c',
+                loc_list=starting_locs
                 )
+    
 
-    plt.legend(['No Model', 'Fully Learned Model', 'Fully Expert Model']) #'Greedy IPP'])#, 'Side Information Augmented Random Path', 'Side Information Augmented Greedy IPP'])
+    plt.legend(['S-IPP', 'M-IPP with Parameter Learning', 'Fully Expert Model']) #'Greedy IPP'])#, 'Side Information Augmented Random Path', 'Side Information Augmented Greedy IPP'])
+    #plt.legend(['S-IPP, Randomly Exploring', 'S-IPP, Greedy Information Gain', 'M-IPP, Greedy Information Gain']) #'Greedy IPP'])#, 'Side Information Augmented Random Path', 'Side Information Augmented Greedy IPP'])
     plt.show()

@@ -1,0 +1,6 @@
+from data.SideInformationEnvironmentRandomGP import SideInformationEnvironmentRandomGP
+
+def plot_environment():
+    env = new SideInformationEnvironmentRandomGP()
+
+    x_test = generate_grid(lb=-2.0, ub=2.0, res=20)
