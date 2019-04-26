@@ -9,13 +9,16 @@ class SideInformationEnvironmentRandomGP(Environment):
         self.points = points
         self.func = [self.hardness_field, self.depth_field, self.signal_field, self.random_field]
         self.func_names = ['hardness field', 'depth field', 'signal field', 'random field']
-        self.res = 20
+        self.res = 50
 
-        self.kernel = generate_rbfkern(2, 1.0, 1.5)
-        self.x_test = generate_grid(lb=-2.0, ub=2.0, res=self.res)
-        self.draw = np.random.normal(size=(self.res * self.res, 1))
+        kernel = generate_rbfkern(2, 1.0, 1.5)
+        self.model = GPy.models.GPRegression(np.array(generate_grid(lb=-2.0, ub=2.0, res=self.res)), np.random.randn(self.res * self.res).reshape(-1, 1), kernel)
+        self.signal_grid = self.model.predict(np.array(generate_grid(lb=-2.0, ub=2.0, res=50)))[0].reshape(50, 50)
 
-        #self.posteriorY = model.posterior_samples(x_samp, full_cov=True, size=1).reshape(self.res, self.res)
+        print(self.signal_grid)
+
+        #x_samp = generate_grid(lb=-2.0, ub=2.0, res=self.res)
+        #self.posteriorY = model.posterior_samples(x_samp, size=1).reshape(self.res, self.res)
 
 
 
@@ -48,15 +51,10 @@ class SideInformationEnvironmentRandomGP(Environment):
 
 
     def signal_field(self, x):
+        x_index = int((x[0] + 2.0) / 4.0 * 50 - 1)
+        y_index = int((x[0] + 2.0) / 4.0 * 50 - 1)
 
-        #xindex = int((x[0] + 2.0) / 4 * self.res-1)
-        #yindex = int((x[1] + 2.0) / 4 * self.res-1)
-
-        K_ss = self.kernel(self.x_test, x)
-        L = np.linalg.cholesky(K_ss + 1e-15*np.eye(len(K_ss)))
-        val = np.dot(L, self.draw)
-
-        #return self.posteriorY[xindex, yindex]
+        return self.signal_grid[x_index][y_index]
 
     def depth_field(self, x):
         return -1 * x[0]
