@@ -2,5 +2,4 @@
 
 A path planner for autonomous science vehicles which adaptively learns and exploits relationships between features based on an expert knowledge model structure.
 
-<embed src="https://github.com/gmargo11/MIPP/raw/master/paper.pdf" type="application/pdf" width="700px" height="700px">
-</embed>
+Download the paper <a href="https://github.com/gmargo11/MIPP/raw/master/paper.pdf">here</a>.
