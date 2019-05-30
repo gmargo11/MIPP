@@ -4,6 +4,7 @@ from inference.DiscreteGaussianBeliefModel import DiscreteGaussianBeliefModel
 from inference.GaussianProcessBeliefModel import GaussianProcessBeliefModel
 from inference.JointGPModel import JointGPModel
 from inference.KnownCovarianceModel import KnownCovarianceModel
+from inference.UncertainGPModel import UncertainGPModel
 from planning.MCTSPlanner import MCTSPlanner
 from planning.GreedyPlanner import GreedyPlanner
 from planning.BanditPlanner import BanditPlanner
@@ -65,7 +66,7 @@ def plot_MSE(env, plannerClass, modelClass, num_steps, num_trials, color, loc_li
         MSE, model = simulateRun(  env=env, 
                             plannerClass=plannerClass, 
                             modelClass=modelClass, 
-                            seed=i,
+                            seed=i+10,
                             num_steps=num_steps,
                             loc=loc_list[i]
                             )
@@ -98,10 +99,10 @@ if __name__ == "__main__":
     env = SideInformationEnvironmentRandomGP(points)
     #env = SideInformationEnvironmentRandomIndependentGP(points)
 
-    num_trials = 12
+    num_trials = 20
     num_steps = 80
 
-    starting_locs = np.round(np.random.random(size=(num_trials, 2)), 1)
+    starting_locs = np.zeros((num_trials, 2)) #np.round(np.random.random(size=(num_trials, 2)), 1)
 
     '''
     plot_MSE(   env=env, 
@@ -122,6 +123,15 @@ if __name__ == "__main__":
                 loc_list=starting_locs
                 )
     
+    plot_MSE(   env=env, 
+                plannerClass=GreedyPlanner, 
+                modelClass=UncertainGPModel, 
+                num_steps=num_steps,
+                num_trials=num_trials,
+                color='r',
+                loc_list=starting_locs
+                )
+
     plot_MSE(   env=env, 
                 plannerClass=GreedyPlanner, 
                 modelClass=JointGPModel, 
@@ -150,6 +160,7 @@ if __name__ == "__main__":
                 )
     
 
-    plt.legend(['S-IPP', 'M-IPP with Parameter Learning', 'Fully Expert Model']) #'Greedy IPP'])#, 'Side Information Augmented Random Path', 'Side Information Augmented Greedy IPP'])
+    plt.legend(['S-IPP', 'M-IPP with Active Learning', 'M-IPP', 'Fully Expert Model'])
+    #plt.legend(['S-IPP', 'M-IPP with Parameter Learning', 'Fully Expert Model']) #'Greedy IPP'])#, 'Side Information Augmented Random Path', 'Side Information Augmented Greedy IPP'])
     #plt.legend(['S-IPP, Randomly Exploring', 'S-IPP, Greedy Information Gain', 'M-IPP, Greedy Information Gain']) #'Greedy IPP'])#, 'Side Information Augmented Random Path', 'Side Information Augmented Greedy IPP'])
     plt.show()

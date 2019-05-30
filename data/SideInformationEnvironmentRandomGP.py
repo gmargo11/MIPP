@@ -50,7 +50,7 @@ class SideInformationEnvironmentRandomGP(Environment):
 
 
     def randomize(self, seed):
-        
+
         np.random.seed(seed)
 
         kernel = generate_rbfkern(2, 1.0, 1.5)
@@ -74,7 +74,7 @@ class SideInformationEnvironmentRandomGP(Environment):
                 y_task: a numpy array of output-values for each sample from each function
                 num_funcs: the number of state variables in the dataset
         '''
-        n_sample = [100, 100, 1, 100]
+        n_sample = [13**2, 13**2, 1, 1]
         num_funcs = len(self.func)
         x_task = np.array([None for i in range(num_funcs)])
         y_task = np.array([None for i in range(num_funcs)])
@@ -84,8 +84,14 @@ class SideInformationEnvironmentRandomGP(Environment):
             if i == 2: 
                 #x_task[i] = np.array([np.random.rand(n_sample[i]) * -1, np.random.rand(n_sample[i]) * -1]).T
                 x_task[i] = np.array([[start_loc[0]], [start_loc[1]]]).T
+            elif i == 1:
+                #poss = [(-2.0, 0.0), (2.0, 0.0), (0.0, -2.0), (0.0, 2.0)]
+                #real = np.random.choice(poss)
+                real = (0, 1.8)
+                x_task[i] = generate_grid(real[0], real[1], int(math.sqrt(n_sample[i])))
+                print('x_task:', x_task[i])
             else:
-                x_task[i] = generate_grid(-2.0, 2.0, int(math.sqrt(n_sample[i])))
+                x_task[i] = generate_grid(-1.8, 1.8, int(math.sqrt(n_sample[i])))
             y_task[i] = np.array([self.func[i](xp) for xp in x_task[i]])
             
         return x_task, y_task, num_funcs
